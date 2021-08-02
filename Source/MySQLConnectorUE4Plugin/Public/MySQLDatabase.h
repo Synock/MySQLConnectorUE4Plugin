@@ -70,6 +70,10 @@ namespace MySQLConnectorResultValueTypes
 	{
 		Int,
 		Varchar,
+		DateTime,
+		Float,
+		Double,
+		Tiny,
 		UnsupportedValueType
 	};
 }
@@ -82,6 +86,7 @@ struct MySQLConnectorResultField
 	FString StringValue;
 	double DoubleValue;
 	int64 IntValue;
+	float FloatValue;
 
 	FString Name;
 	MySQLConnectorResultValueTypes::MySQLConnectorResultValType Type;
@@ -92,6 +97,15 @@ struct MySQLConnectorResultField
 			return StringValue;
 		if (Type == MySQLConnectorResultValueTypes::Int)
 			return FString::Printf(TEXT("%i"), IntValue);
+		if (Type == MySQLConnectorResultValueTypes::Float)
+			return FString::SanitizeFloat(FloatValue);
+		if (Type == MySQLConnectorResultValueTypes::DateTime)
+			return StringValue;
+		if (Type == MySQLConnectorResultValueTypes::Tiny)
+			return FString::Printf(TEXT("%i"), IntValue);
+		if (Type == MySQLConnectorResultValueTypes::Double)
+			return FString::SanitizeFloat(DoubleValue);
+
 		return StringValue;
 	}
 };

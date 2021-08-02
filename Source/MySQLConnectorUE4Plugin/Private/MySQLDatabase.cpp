@@ -263,7 +263,9 @@ bool UMySQLDatabase::MySQLConnectorGetPlayerControllerIP(FString& IP, int32& IP_
 		if (connection)
 		{
 			IP = connection->LowLevelGetRemoteAddress(false);
-			IP_int = connection->GetAddrAsInt();
+			uint32 tmpIPInt;
+			connection->GetRemoteAddr()->GetIp(tmpIPInt);
+			IP_int = static_cast<int32>(tmpIPInt);
 			return true;
 		}
 	}
@@ -356,21 +358,32 @@ MySQLConnectorQueryResult UMySQLDatabase::RunQueryAndGetResults(FString Query, U
 
 			switch (fieldTypes[i])
 			{
+			case enum_field_types::MYSQL_TYPE_SHORT:
 			case enum_field_types::MYSQL_TYPE_LONG:
-				//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Cyan, TEXT("MySQLConnector: Type is: MYSQL_TYPE_LONG "));
-				//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Cyan, TEXT("VALUE is '") + fieldValueStr + TEXT("' "));
 				val.Type = MySQLConnectorResultValueTypes::Int;
 				val.IntValue = FCString::Atoi(*fieldValueStr);
 				break;
 			case enum_field_types::MYSQL_TYPE_VAR_STRING:
-				//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Cyan, TEXT("MySQLConnector: Type is: MYSQL_TYPE_VAR_STRING"));
-				//GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Cyan, TEXT("VALUE is '") + fieldValueStr + TEXT("' "));
 				val.Type = MySQLConnectorResultValueTypes::Varchar;
 				val.StringValue = fieldValueStr;
 				break;
+			case enum_field_types::MYSQL_TYPE_DATETIME:
+				val.Type = MySQLConnectorResultValueTypes::DateTime;
+				val.StringValue = fieldValueStr;
+				break;
+			case enum_field_types::MYSQL_TYPE_FLOAT:
+				val.Type = MySQLConnectorResultValueTypes::Float;
+				val.FloatValue = FCString::Atof(*fieldValueStr);
+				break;
+			case enum_field_types::MYSQL_TYPE_DOUBLE:
+				val.Type = MySQLConnectorResultValueTypes::Double;
+				val.DoubleValue = FCString::Atod(*fieldValueStr);
+				break;
+			case enum_field_types::MYSQL_TYPE_TINY:
+				val.Type = MySQLConnectorResultValueTypes::Tiny;
+				val.IntValue = FCString::Atoi(*fieldValueStr);
+				break;
 			default:
-				/*GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Cyan, TEXT("MySQLConnector: Type is: UNKNOWN"));
-				GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Cyan, TEXT("VALUE is '") + fieldValueStr + TEXT("' "));*/
 				val.Type = MySQLConnectorResultValueTypes::UnsupportedValueType;
 				val.IntValue = FCString::Atoi(*fieldValueStr);
 				val.StringValue = fieldValueStr;
